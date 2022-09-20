@@ -1,37 +1,78 @@
 import { Request, Response } from "express";
 import { User } from "../models";
 import { BadRequestError } from "../errors";
-import { PasswordHash } from "../services";
+import { UsernameGenerator, PasswordHash } from "../services";
 
-export const foo = async (req: Request, res: Response) => {
-  const { firstName, lastName, email, password } = req.body;
+export const signup = async (req: Request, res: Response) => {
+  const { firstName, lastName, email, password, google } = req.body;
 
   const existingUser = await User.findOne({ email });
 
-  if (existingUser) throw new BadRequestError("Email in Use");
+  if (existingUser) throw new BadRequestError("E-mail in Use");
 
-  const hashedPassword = await PasswordHash.toHash(password);
+  const username = await UsernameGenerator.generate(firstName, lastName);
 
-  const result = User.build({
+  const user = User.build({
     firstName,
     lastName,
+    username,
     email,
-    password: hashedPassword,
+    local: { password },
   });
+  await user.save();
 
-  await result.save();
-
-  if (!result) throw new Error("Something Wrong happened!");
-  res.send(result);
+  res.status(201).send(user);
 };
 
-export const bar = async (req: Request, res: Response) => {
-  const storedUser = await User.findOne({ firstName: "hosni" }).select(
-    "+password"
+export const login = async (req: Request, res: Response) => {
+  const { email, username, password } = req.body;
+
+  const user = await User.findOne(email ? { email } : { username }).select(
+    "+local"
   );
-  console.log(storedUser);
-  if (!storedUser) throw new Error("No User Found");
-  if (await PasswordHash.compare(storedUser.password!, "123456"))
-    return res.send(storedUser);
-  res.send("<h1>Incorrect Password</h1>");
+
+  if (!user || !user.local?.password)
+    throw new BadRequestError("Invalid Credentials");
+
+  if (!(await PasswordHash.compare(user.local.password, password)))
+    throw new BadRequestError("Invalid Credentials");
+
+  return res.status(200).send(user);
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id);
+
+  if (!user) throw new BadRequestError("No user Found");
+
+  user.set(req.body);
+
+  await user.save();
+
+  res.status(200).send({ user });
+};
+
+export const updateUserPassword = async (req: Request, res: Response) => {
+  const { email, oldPassword, password } = req.body;
+
+  const user = await User.findOne({ email }).select("+local");
+
+  if (!user || !user.local?.password)
+    throw new BadRequestError("No user Found");
+
+  if (!(await PasswordHash.compare(user.local.password, oldPassword)))
+    throw new BadRequestError("Incorrect password!");
+
+  user.set({ local: { password } });
+
+  await user.save();
+
+  res.status(200).send(user);
+};
+
+export const test = async (req: Request, res: Response) => {
+  console.log(req.body);
+  res.status(200).send(req.body);
 };

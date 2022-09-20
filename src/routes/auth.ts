@@ -1,11 +1,24 @@
 import express from "express";
-import { foo, bar } from "../controllers/auth";
+import {
+  signup,
+  login,
+  updateUser,
+  updateUserPassword,
+  test,
+} from "../controllers/auth";
 import { RequestValidator } from "../middlewares";
-import { signUpValidator } from "../validators/auth";
+import {
+  signupValidator,
+  testValidator,
+  loginValidator,
+} from "../validators/auth";
 
 const router = express.Router();
 
-router.post("/foo", signUpValidator, RequestValidator, foo);
-router.get("/bar", bar);
+router.post("/signup", signupValidator, RequestValidator, signup);
+router.post("/login", loginValidator, RequestValidator, login);
+router.post("/update/:id", updateUser);
+router.post("/updatePassword", updateUserPassword);
+router.post("/test", testValidator, RequestValidator, test);
 
 export default router;
