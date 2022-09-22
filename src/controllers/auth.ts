@@ -1,9 +1,24 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import { User } from "../models";
-import { BadRequestError } from "../errors";
+import { BadRequestError, NotFoundError } from "../errors";
 import { UsernameGenerator, PasswordHash } from "../services";
+import { isValidObjectId, ObjectId } from "mongoose";
 
-export const signup = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: Request, res: Response) => {
+  if (!req.currentUser) return res.send({ currentUser: null });
+
+  if (!isValidObjectId(req.currentUser.id))
+    throw new BadRequestError("Invalid Request");
+
+  const currentUser = await User.findById(req.currentUser.id);
+
+  if (!currentUser) throw new NotFoundError();
+
+  return res.send({ currentUser: currentUser });
+};
+
+export const register = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password, google } = req.body;
 
   const existingUser = await User.findOne({ email });
@@ -37,7 +52,14 @@ export const login = async (req: Request, res: Response) => {
   if (!(await PasswordHash.compare(user.local.password, password)))
     throw new BadRequestError("Invalid Credentials");
 
-  return res.status(200).send(user);
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_KEY!,
+    {
+      expiresIn: 300,
+    }
+  );
+  return res.status(200).send({ user, token });
 };
 
 export const updateUser = async (req: Request, res: Response) => {

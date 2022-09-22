@@ -41,8 +41,18 @@ const main = async () => {
     process.env.TWILIO_SERVICE_SID
   );
   console.log("Twilio Service Stared");
-
+  statistics();
   app.listen(PORT, () => console.log(`Server is running on PORT : ${PORT}`));
 };
 
 main();
+
+const statistics = () => {
+  const stats = [];
+  const { rss, heapTotal, external, heapUsed } = process.memoryUsage();
+  stats.push({ item: "rss", value: `${rss / 1000000} MB` });
+  stats.push({ item: "heapTotal", value: `${heapTotal / 1000000} MB` });
+  stats.push({ item: "external", value: `${external / 1000000} MB` });
+  stats.push({ item: "heapUsed", value: `${heapUsed / 1000000} MB` });
+  console.table(stats);
+};

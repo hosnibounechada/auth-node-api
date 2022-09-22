@@ -1,6 +1,6 @@
 import { body, oneOf } from "express-validator";
 
-export const signupValidator = [
+export const registerValidator = [
   body("firstName")
     .toLowerCase()
     .isLength({ min: 1, max: 25 })
