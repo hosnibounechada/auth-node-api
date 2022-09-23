@@ -1,67 +1,48 @@
 import { body, oneOf } from "express-validator";
 
-export const registerValidator = [
-  body("firstName")
-    .toLowerCase()
-    .isLength({ min: 1, max: 25 })
-    .withMessage("Invalid first name"),
-  body("lastName")
-    .toLowerCase()
-    .isLength({ min: 1, max: 25 })
-    .withMessage("Invalid last name"),
-  body("email").isEmail().normalizeEmail().withMessage("Invalid E-mail"),
-  body("password")
-    .notEmpty()
-    .isLength({ min: 6, max: 50 })
-    .withMessage("Invalid password"),
-];
+const firstName = body("firstName").toLowerCase().isLength({ min: 1, max: 25 }).withMessage("Invalid first name");
+const lastName = body("lastName").toLowerCase().isLength({ min: 1, max: 25 }).withMessage("Invalid last name");
+const username = body("username").isLength({ min: 6, max: 25 }).withMessage("Invalid username");
+const notUsername = body("username").not().exists().withMessage("Invalid Input");
+const email = body("email").isEmail().normalizeEmail().withMessage("Invalid E-mail");
+const notEmail = body("email").not().exists().withMessage("Invalid Input");
+const phone = body("phone").isMobilePhone("any").withMessage("Invalid phone number");
+const notPhone = body("phone").not().exists().withMessage("Invalid Input");
+const password = body("password").notEmpty().isLength({ min: 6, max: 50 }).withMessage("Invalid password");
+const oldPassword = body("oldPassword").notEmpty().isLength({ min: 6, max: 50 }).withMessage("Invalid password");
+const notLocal = body("local").not().exists().withMessage("Invalid Input");
+const notGoogle = body("google").not().exists().withMessage("Invalid Input");
+const code = body("code").isNumeric().isLength({ min: 4, max: 4 }).withMessage("Invalid code");
+const phoneCode = body("code").isLength({ min: 6, max: 6 }).withMessage("Invalid code");
+
+export const registerValidator = [firstName, lastName, email, password];
 
 export const loginValidator = [
   oneOf(
     [
-      [
-        body("email")
-          .isEmail()
-          .normalizeEmail()
-          .withMessage("Email must be valid"),
-        body("password")
-          .notEmpty()
-          .isLength({ min: 6, max: 50 })
-          .withMessage("Invalid password"),
-        body("username").not().exists().withMessage("Invalid Input"),
-      ],
-      [
-        body("username")
-          .isLength({ min: 6, max: 25 })
-          .withMessage("Invalid username"),
-        body("password")
-          .trim()
-          .notEmpty()
-          .isLength({ min: 6, max: 50 })
-          .withMessage("Invalid password"),
-        body("email").not().exists().withMessage("Invalid Input"),
-      ],
+      [email, password, notUsername],
+      [username, password, notEmail],
     ],
     "Invalid Credentials"
   ),
 ];
 
-export const testValidator = [
-  body("email").isEmail().normalizeEmail(),
-  body("text").not().isEmpty().trim().escape(),
-  body("extra").not().exists(),
-];
+export const updateUserValidator = [firstName.optional(), lastName.optional(), notUsername, notEmail, notPhone, notLocal, notGoogle];
 
-/*
-export const customValidator = [
-  body("email")
-    .isEmail()
-    .normalizeEmail()
-    .withMessage("E-mail must be valid")
-    .custom(async (value) => {
-      const user = await User.findOne({ email: value });
-      if (user) throw new Error("E-mail already in use");
-      return true;
-    }),
-];
-*/
+export const updatePasswordValidator = [oldPassword, password];
+
+export const usernameValidator = [username];
+
+export const emailValidator = [email];
+
+export const phoneValidator = [phone];
+
+export const existenceValidator = [oneOf([[email], [username], [phone]], "Invalid input")];
+
+export const updateEmailValidator = [email, code];
+
+export const sendEmailCodeValidator = [email, password];
+
+export const confirmPhoneValidator = [phone, phoneCode];
+
+export const resetPasswordValidator = [email, password, code];

@@ -1,2 +1,3 @@
 export * from "./password-hash";
-export * from "./username-generator";
+export * from "./random-generator";
+export * from "./jwt-provider";

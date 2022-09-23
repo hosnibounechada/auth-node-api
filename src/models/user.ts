@@ -6,8 +6,10 @@ interface UserAttrs {
   lastName: string;
   username: string;
   email: string;
+  phone?: string;
   local?: { password: string };
   google?: { id: string };
+  verified?: boolean;
 }
 
 interface UserDoc extends mongoose.Document<any> {
@@ -15,8 +17,10 @@ interface UserDoc extends mongoose.Document<any> {
   lastName: string;
   username: string;
   email: string;
+  phone?: string;
   local?: { password: string };
   google?: { id: string };
+  verified?: boolean;
 }
 
 interface UserModel extends mongoose.Model<UserDoc> {
@@ -51,30 +55,29 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    phone: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     local: {
-      type: new mongoose.Schema(
-        {
-          password: {
-            type: String,
-          },
-        },
-        { _id: false }
-      ),
-      select: false,
+      password: {
+        type: String,
+      },
     },
     google: {
-      type: new mongoose.Schema(
-        {
-          id: {
-            type: String,
-          },
-        },
-        { _id: false }
-      ),
-      select: false,
+      id: {
+        type: String,
+        unique: true,
+      },
+    },
+    verified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
+    timestamps: true,
     toJSON: {
       transform(doc, ret) {
         ret.id = ret._id;
@@ -87,6 +90,14 @@ const userSchema = new mongoose.Schema(
         delete ret.__v;
       },
     },
+  }
+);
+
+userSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 60 * 3,
+    partialFilterExpression: { verified: false },
   }
 );
 
