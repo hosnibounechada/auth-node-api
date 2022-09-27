@@ -10,16 +10,8 @@ declare global {
   }
 }
 
-export const currentUser = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer")
-  )
-    return next();
+export const currentUser = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer")) return next();
 
   const token = req.headers.authorization.split(" ")[1];
 

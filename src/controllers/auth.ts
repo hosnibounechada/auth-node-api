@@ -262,3 +262,17 @@ export const confirmPasswordCode = async (req: Request, res: Response) => {
 
   res.status(200).send(user);
 };
+
+export const deleteAccount = async (req: Request, res: Response) => {
+  const id = req.currentUser?.id;
+
+  const user = await User.findById(id);
+
+  if (!user) throw new BadRequestError("Not found");
+
+  user.remove();
+
+  await user.save();
+
+  res.status(204).send({ success: true });
+};
