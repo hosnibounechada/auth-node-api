@@ -7,6 +7,8 @@ interface UserAttrs {
   username: string;
   email: string;
   phone?: string;
+  picture?: string;
+  thumbnail?: string;
   local?: { password: string };
   google?: { id: string };
   verified?: boolean;
@@ -18,6 +20,8 @@ interface UserDoc extends mongoose.Document<any> {
   username: string;
   email: string;
   phone?: string;
+  picture: string;
+  thumbnail: string;
   local?: { password: string };
   google?: { id: string };
   verified?: boolean;
@@ -59,6 +63,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+    },
+    picture: {
+      type: String,
+      default: `${process.env.GOOGLE_PHOTOS_URL}${process.env.DEFAULT_PICTURE}`,
+    },
+    thumbnail: {
+      type: String,
+      default: `${process.env.GOOGLE_PHOTOS_URL}${process.env.DEFAULT_THUMBNAIL}`,
     },
     local: {
       password: {

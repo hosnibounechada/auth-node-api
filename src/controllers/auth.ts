@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { isValidObjectId } from "mongoose";
 
 import redis from "../services/redis";
+import drive from "../services/drive";
 import twilio from "../services/twilio";
 import { sendEmail } from "../services/mailer";
 
@@ -275,4 +276,51 @@ export const deleteAccount = async (req: Request, res: Response) => {
   await user.save();
 
   res.status(204).send({ success: true });
+};
+
+export const uploadProfilePicture = async (req: Request, res: Response) => {
+  const id = req.currentUser?.id;
+
+  if (!req.file) throw new BadRequestError("No file selected!");
+
+  const file = req.file as Express.Multer.File;
+
+  if (!file.mimetype.startsWith("image")) throw new BadRequestError("Only images allowed!");
+
+  if (file.size > 1000000) throw new BadRequestError("Only 1MB");
+
+  const user = await User.findById(id);
+
+  if (!user) throw new BadRequestError("no user found");
+
+  const response = await drive.uploadFile(file, user.id);
+
+  if (!response) throw new BadRequestError("Server Error, try later");
+
+  user.picture = `${process.env.GOOGLE_PHOTOS_URL}${response.id}`;
+
+  await user.save();
+
+  res.status(200).send(user);
+};
+export const removeProfilePicture = async (req: Request, res: Response) => {
+  const id = req.currentUser?.id;
+
+  const user = await User.findById(id);
+
+  if (!user) throw new BadRequestError("no user found");
+
+  const fileId = user.picture.split("/d/")[1];
+
+  const success = await drive.deleteFile(fileId);
+
+  if (!success) throw new BadRequestError("No file found");
+
+  user.picture = `${process.env.GOOGLE_PHOTOS_URL}${process.env.DEFAULT_PICTURE}`;
+
+  user.thumbnail = `${process.env.GOOGLE_PHOTOS_URL}${process.env.DEFAULT_THUMBNAIL}`;
+
+  await user.save();
+
+  res.status(200).send({ success });
 };

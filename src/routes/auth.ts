@@ -1,4 +1,5 @@
-import express, { Request, Response } from "express";
+import express from "express";
+import multer from "multer";
 import {
   register,
   verifyEmail,
@@ -15,6 +16,8 @@ import {
   forgotPasswordCode,
   confirmPasswordCode,
   deleteAccount,
+  uploadProfilePicture,
+  removeProfilePicture,
 } from "../controllers/auth";
 import { RequestValidator, requireAuth } from "../middlewares";
 import {
@@ -32,6 +35,7 @@ import {
 } from "../validators/auth";
 
 const router = express.Router();
+const upload = multer();
 
 router.post("/register", registerValidator, RequestValidator, register);
 
@@ -60,6 +64,10 @@ router.post("/confirmPhoneCode", requireAuth, confirmPhoneValidator, RequestVali
 router.post("/forgotPasswordViaRedis", emailValidator, RequestValidator, forgotPasswordCode);
 
 router.post("/resetPasswordViaRedis", resetPasswordValidator, RequestValidator, confirmPasswordCode);
+
+router.post("/uploadProfilePicture", requireAuth, upload.single("file"), uploadProfilePicture);
+
+router.get("/removeProfilePicture", requireAuth, removeProfilePicture);
 
 router.delete("/", requireAuth, deleteAccount);
 

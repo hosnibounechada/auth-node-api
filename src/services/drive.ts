@@ -1,6 +1,4 @@
 import { google } from "googleapis";
-import * as path from "path";
-import fs from "fs";
 import stream from "stream";
 
 const oauth2Client = new google.auth.OAuth2(
@@ -17,8 +15,6 @@ const drive = google.drive({
   version: "v3",
   auth: oauth2Client,
 });
-
-const filePath = path.join(__dirname, "bounechada.JPG");
 
 class Drive {
   async uploadFile(file: Express.Multer.File, fileName: string) {
