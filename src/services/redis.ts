@@ -13,10 +13,7 @@ class Redis {
     });
     try {
       await Redis.client.connect();
-      console.log(
-        "Connected Successfully to Redis URI :",
-        process.env.REDIS_URI
-      );
+      console.log("Connected Successfully to Redis URI :", process.env.REDIS_URI);
     } catch (err) {
       console.error(err);
     }

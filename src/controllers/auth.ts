@@ -8,7 +8,7 @@ import { sendEmail } from "../services/mailer";
 
 import { User } from "../models";
 import { TWILIO_STATUS } from "../types";
-import { BadRequestError, GoneError, NotFoundError } from "../errors";
+import { BadRequestError, GoneError, NotFoundError, NotAuthorizedError } from "../errors";
 import { RandomGenerator, PasswordHash, JwtProvider } from "../services";
 import { confirmationEmail, resetPasswordEmail } from "../templates/email";
 
@@ -66,6 +66,8 @@ export const login = async (req: Request, res: Response) => {
   if (!user || !user.local?.password) throw new BadRequestError("Invalid Credentials");
 
   if (!(await PasswordHash.compare(user.local.password, password))) throw new BadRequestError("Invalid Credentials");
+
+  if (!user.verified) throw new NotAuthorizedError();
 
   const data = { id: user.id, email: user.email };
 
