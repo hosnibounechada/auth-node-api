@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 import { UserPayload } from "../types";
 
 export class JwtProvider {
-  static jwtAuth(data: UserPayload) {
-    return jwt.sign(data, process.env.JWT_KEY!, {
-      expiresIn: Number(process.env.JWT_TTL) || 60 * 5,
+  static jwtAuth(data: UserPayload, tokenKey: string, ttl: string) {
+    return jwt.sign(data, tokenKey, {
+      expiresIn: ttl,
     });
   }
 

@@ -11,12 +11,12 @@ class Redis {
     Redis.client = createClient({
       url: process.env.REDIS_URI,
     });
-    try {
-      await Redis.client.connect();
-      console.log("Connected Successfully to Redis URI :", process.env.REDIS_URI);
-    } catch (err) {
-      console.error(err);
-    }
+    // try {
+    //   await Redis.client.connect();
+    //   console.log("Connected Successfully to Redis URI :", process.env.REDIS_URI);
+    // } catch (err) {
+    //   console.error(err);
+    // }
   }
 
   static getInstance() {

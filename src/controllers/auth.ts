@@ -14,6 +14,24 @@ import { confirmationEmail, resetPasswordEmail } from "../templates/email";
 
 const client = redis.getRedisClient();
 
+export const getNewAccessToken = async (req: Request, res: Response) => {
+  if (!req.currentUser) return res.send({ currentUser: null });
+
+  if (!isValidObjectId(req.currentUser.id)) throw new BadRequestError("Invalid Request");
+
+  const user = await User.findById(req.currentUser.id).select("+refreshToken");
+
+  if (!user) throw new NotFoundError();
+
+  if (user.refreshToken !== req.cookies.jwt) throw new NotAuthorizedError();
+
+  const data = { id: user.id, email: user.email };
+
+  const accessToken = JwtProvider.jwtAuth(data, process.env.ACCESS_TOKEN_KEY!, process.env.ATK_TTL!);
+
+  return res.send({ accessToken });
+};
+
 export const getCurrentUser = async (req: Request, res: Response) => {
   if (!req.currentUser) return res.send({ currentUser: null });
 
@@ -49,11 +67,11 @@ export const register = async (req: Request, res: Response) => {
 
   await client.setEx(email, Number(process.env.CODE_TTL) || 60 * 5, code.toString());
 
-  const options = confirmationEmail(email, code);
+  //const options = confirmationEmail(email, code);
 
-  const response = await sendEmail(options);
+  //const response = await sendEmail(options);
 
-  if (!response) throw new BadRequestError("Failed to send Confirmation Email");
+  //if (!response) throw new BadRequestError("Failed to send Confirmation Email");
 
   res.status(201).send({ user, code });
 };
@@ -71,9 +89,17 @@ export const login = async (req: Request, res: Response) => {
 
   const data = { id: user.id, email: user.email };
 
-  const token = JwtProvider.jwtAuth(data);
+  const refreshToken = JwtProvider.jwtAuth(data, process.env.REFRESH_TOKEN_KEY!, process.env.RTK_TTL!);
 
-  return res.status(200).send({ user, token });
+  const accessToken = JwtProvider.jwtAuth(data, process.env.ACCESS_TOKEN_KEY!, process.env.ATK_TTL!);
+
+  res.cookie("jwt", refreshToken, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+
+  user.refreshToken = refreshToken;
+
+  await user.save();
+
+  return res.status(200).send({ user, accessToken });
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
@@ -305,6 +331,7 @@ export const uploadProfilePicture = async (req: Request, res: Response) => {
 
   res.status(200).send(user);
 };
+
 export const removeProfilePicture = async (req: Request, res: Response) => {
   const id = req.currentUser?.id;
 
@@ -325,4 +352,18 @@ export const removeProfilePicture = async (req: Request, res: Response) => {
   await user.save();
 
   res.status(200).send({ success });
+};
+
+export const logOut = async (req: Request, res: Response) => {
+  const user = await User.findById(req.currentUser!.id).select("+refreshToken");
+
+  if (!user) throw new GoneError();
+
+  user.refreshToken = "";
+
+  await user.save();
+
+  res.clearCookie("jwt");
+
+  res.status(200).send({ user: {} });
 };

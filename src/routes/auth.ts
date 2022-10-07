@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Router } from "express";
 import multer from "multer";
 import {
   register,
@@ -18,8 +18,10 @@ import {
   deleteAccount,
   uploadProfilePicture,
   removeProfilePicture,
+  getNewAccessToken,
+  logOut,
 } from "../controllers/auth";
-import { RequestValidator, requireAuth } from "../middlewares";
+import { RequestValidator, requireAuth, decodeRefreshToken } from "../middlewares";
 import {
   registerValidator,
   loginValidator,
@@ -45,6 +47,8 @@ router.post("/verifyEmail", verifyEmail);
 
 router.get("/me", getCurrentUser);
 
+router.get("/refresh", decodeRefreshToken, requireAuth, getNewAccessToken);
+
 router.put("/update/:id", requireAuth, updateUser);
 
 router.put("/updatePassword", requireAuth, updatePasswordValidator, updateUserPassword);
@@ -68,6 +72,8 @@ router.post("/resetPasswordViaRedis", resetPasswordValidator, RequestValidator, 
 router.post("/uploadProfilePicture", requireAuth, upload.single("file"), uploadProfilePicture);
 
 router.get("/removeProfilePicture", requireAuth, removeProfilePicture);
+
+router.get("/logout", requireAuth, logOut);
 
 router.delete("/", requireAuth, deleteAccount);
 

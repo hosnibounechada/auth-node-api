@@ -16,11 +16,9 @@ export const currentUser = (req: Request, res: Response, next: NextFunction) => 
   const token = req.headers.authorization.split(" ")[1];
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_KEY!) as UserPayload;
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_KEY!) as UserPayload;
     req.currentUser = payload;
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) {}
 
   next();
 };

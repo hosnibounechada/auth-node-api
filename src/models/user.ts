@@ -25,6 +25,7 @@ interface UserDoc extends mongoose.Document<any> {
   local?: { password: string };
   google?: { id: string };
   verified?: boolean;
+  refreshToken: string;
 }
 
 interface UserModel extends mongoose.Model<UserDoc> {
@@ -87,6 +88,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    refreshToken: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
@@ -99,6 +104,7 @@ const userSchema = new mongoose.Schema(
         delete ret.lastName;
         delete ret.local;
         delete ret.google;
+        delete ret.refreshToken;
         delete ret.__v;
       },
     },
