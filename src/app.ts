@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import "express-async-errors";
 import { json, urlencoded } from "body-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import { authRouter } from "./routes";
@@ -14,6 +15,7 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 app.use(cors());
 app.use(urlencoded({ extended: true }));
 app.use(json());
+app.use(cookieParser());
 
 app.use(currentUser);
 
