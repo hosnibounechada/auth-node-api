@@ -12,7 +12,12 @@ const app = express();
 
 app.use("/public", express.static(path.join(__dirname, "public")));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(urlencoded({ extended: true }));
 app.use(json());
 app.use(cookieParser());

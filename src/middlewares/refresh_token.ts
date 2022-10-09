@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { NotAuthenticatedError, NotAuthorizedError } from "../errors";
 import { UserPayload } from "../types";
 
 declare global {
@@ -11,11 +12,14 @@ declare global {
 }
 
 export const decodeRefreshToken = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.cookies?.jwt) return next();
+  if (!req.cookies?.jwt) throw new NotAuthenticatedError();
   try {
     const payload = jwt.verify(req.cookies.jwt, process.env.REFRESH_TOKEN_KEY!) as UserPayload;
     req.currentUser = payload;
-  } catch (err) {}
+  } catch (err) {
+    res.clearCookie("jwt");
+    throw new NotAuthenticatedError();
+  }
 
   next();
 };

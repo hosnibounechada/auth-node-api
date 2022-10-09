@@ -8,7 +8,7 @@ import { sendEmail } from "../services/mailer";
 
 import { User } from "../models";
 import { TWILIO_STATUS } from "../types";
-import { BadRequestError, GoneError, NotFoundError, NotAuthorizedError } from "../errors";
+import { BadRequestError, GoneError, NotFoundError, NotAuthorizedError, NotAuthenticatedError } from "../errors";
 import { RandomGenerator, PasswordHash, JwtProvider } from "../services";
 import { confirmationEmail, resetPasswordEmail } from "../templates/email";
 
@@ -23,13 +23,13 @@ export const getNewAccessToken = async (req: Request, res: Response) => {
 
   if (!user) throw new NotFoundError();
 
-  if (user.refreshToken !== req.cookies.jwt) throw new NotAuthorizedError();
+  if (user.refreshToken !== req.cookies.jwt) throw new NotAuthenticatedError();
 
   const data = { id: user.id, email: user.email };
 
   const accessToken = JwtProvider.jwtAuth(data, process.env.ACCESS_TOKEN_KEY!, process.env.ATK_TTL!);
 
-  return res.send({ accessToken });
+  return res.send({ user, accessToken });
 };
 
 export const getCurrentUser = async (req: Request, res: Response) => {

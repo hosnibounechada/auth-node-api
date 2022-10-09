@@ -105,6 +105,8 @@ const userSchema = new mongoose.Schema(
         delete ret.local;
         delete ret.google;
         delete ret.refreshToken;
+        delete ret.createdAt;
+        delete ret.updatedAt;
         delete ret.__v;
       },
     },
